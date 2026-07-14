@@ -28,3 +28,16 @@ class InvoiceRecordCreate(BaseModel):
 
 class InvoiceRecord(InvoiceRecordCreate):
     id: int
+
+class ExceptionItemCreate(BaseModel):
+    invoice_record_id: int
+    issue_type: str
+    description: str
+    severity: str = "medium"
+    status: str = "open"
+    needs_sean_review: bool = False
+    notes: Optional[str] = None
+
+
+class ExceptionItem(ExceptionItemCreate):
+    id: int
