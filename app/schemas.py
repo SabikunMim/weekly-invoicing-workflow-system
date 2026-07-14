@@ -41,3 +41,16 @@ class ExceptionItemCreate(BaseModel):
 
 class ExceptionItem(ExceptionItemCreate):
     id: int
+
+class VerificationCheckCreate(BaseModel):
+    invoice_record_id: int
+    completeness_checked: bool = False
+    accuracy_checked: bool = False
+    checked_by: Optional[str] = None
+    status: str = "pending"
+    notes: Optional[str] = None
+
+
+class VerificationCheck(VerificationCheckCreate):
+    id: int
+

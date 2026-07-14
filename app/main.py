@@ -7,6 +7,8 @@ from app.schemas import (
     ExceptionItemCreate,
     InvoiceRecord,
     InvoiceRecordCreate,
+    VerificationCheck,
+    VerificationCheckCreate,
 )
 
 app = FastAPI(
@@ -23,6 +25,9 @@ next_invoice_record_id = 1
 
 exception_items: list[ExceptionItem] = []
 next_exception_item_id = 1
+
+verification_checks: list[VerificationCheck] = []
+next_verification_check_id = 1
 
 
 @app.get("/")
@@ -112,3 +117,33 @@ def create_exception_item(exception_data: ExceptionItemCreate):
 @app.get("/exceptions", response_model=list[ExceptionItem])
 def list_exception_items():
     return exception_items
+
+
+@app.post("/verification-checks", response_model=VerificationCheck, status_code=201)
+def create_verification_check(check_data: VerificationCheckCreate):
+    global next_verification_check_id
+
+    invoice_exists = any(
+        invoice_record.id == check_data.invoice_record_id
+        for invoice_record in invoice_records
+    )
+
+    if not invoice_exists:
+        raise HTTPException(status_code=404, detail="Invoice record not found")
+
+    verification_check = VerificationCheck(
+        id=next_verification_check_id,
+        **check_data.model_dump(),
+    )
+
+    verification_checks.append(verification_check)
+    next_verification_check_id += 1
+
+    return verification_check
+
+
+@app.get("/verification-checks", response_model=list[VerificationCheck])
+def list_verification_checks():
+    return verification_checks
+
+
