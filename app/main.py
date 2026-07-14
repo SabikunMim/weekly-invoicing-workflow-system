@@ -7,6 +7,8 @@ from app.schemas import (
     ExceptionItemCreate,
     InvoiceRecord,
     InvoiceRecordCreate,
+    MonthlyStatement,
+    MonthlyStatementCreate,
     VerificationCheck,
     VerificationCheckCreate,
 )
@@ -28,6 +30,9 @@ next_exception_item_id = 1
 
 verification_checks: list[VerificationCheck] = []
 next_verification_check_id = 1
+
+monthly_statements: list[MonthlyStatement] = []
+next_monthly_statement_id = 1
 
 
 @app.get("/")
@@ -145,5 +150,30 @@ def create_verification_check(check_data: VerificationCheckCreate):
 @app.get("/verification-checks", response_model=list[VerificationCheck])
 def list_verification_checks():
     return verification_checks
+
+
+@app.post("/monthly-statements", response_model=MonthlyStatement, status_code=201)
+def create_monthly_statement(statement_data: MonthlyStatementCreate):
+    global next_monthly_statement_id
+
+    client_exists = any(client.id == statement_data.client_id for client in clients)
+
+    if not client_exists:
+        raise HTTPException(status_code=404, detail="Client not found")
+
+    monthly_statement = MonthlyStatement(
+        id=next_monthly_statement_id,
+        **statement_data.model_dump(),
+    )
+
+    monthly_statements.append(monthly_statement)
+    next_monthly_statement_id += 1
+
+    return monthly_statement
+
+
+@app.get("/monthly-statements", response_model=list[MonthlyStatement])
+def list_monthly_statements():
+    return monthly_statements
 
 

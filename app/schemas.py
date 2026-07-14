@@ -29,6 +29,7 @@ class InvoiceRecordCreate(BaseModel):
 class InvoiceRecord(InvoiceRecordCreate):
     id: int
 
+
 class ExceptionItemCreate(BaseModel):
     invoice_record_id: int
     issue_type: str
@@ -42,6 +43,7 @@ class ExceptionItemCreate(BaseModel):
 class ExceptionItem(ExceptionItemCreate):
     id: int
 
+
 class VerificationCheckCreate(BaseModel):
     invoice_record_id: int
     completeness_checked: bool = False
@@ -52,5 +54,19 @@ class VerificationCheckCreate(BaseModel):
 
 
 class VerificationCheck(VerificationCheckCreate):
+    id: int
+
+
+class MonthlyStatementCreate(BaseModel):
+    client_id: int
+    statement_month: str
+    due_date: date
+    status: str = "pending"
+    total_amount: float = 0.0
+    sent_date: Optional[date] = None
+    notes: Optional[str] = None
+
+
+class MonthlyStatement(MonthlyStatementCreate):
     id: int
 
