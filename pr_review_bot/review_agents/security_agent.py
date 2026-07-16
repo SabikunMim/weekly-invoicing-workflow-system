@@ -1,5 +1,5 @@
 from pr_review_bot.explore_agent import PullRequestContext
-from pr_review_bot.review_agents.test_coverage_agent import ReviewFinding
+from pr_review_bot.findings import ReviewFinding
 
 
 class SecurityReviewAgent:
