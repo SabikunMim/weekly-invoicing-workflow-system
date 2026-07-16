@@ -1,0 +1,113 @@
+name: Issue Triage Bot
+
+on:
+  issues:
+    types: [opened, edited]
+
+permissions:
+  issues: write
+  contents: read
+
+jobs:
+  triage:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Triage issue by keywords
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const issue = context.payload.issue;
+            const title = issue.title.toLowerCase();
+            const body = (issue.body || "").toLowerCase();
+            const text = `${title} ${body}`;
+
+            const labelDefinitions = {
+              "bug": "d73a4a",
+              "enhancement": "a2eeef",
+              "security": "b60205",
+              "documentation": "0075ca",
+              "needs-review": "fbca04"
+            };
+
+            async function ensureLabel(name, color) {
+              try {
+                await github.rest.issues.getLabel({
+                  owner: context.repo.owner,
+                  repo: context.repo.repo,
+                  name: name,
+                });
+              } catch (error) {
+                if (error.status === 404) {
+                  await github.rest.issues.createLabel({
+                    owner: context.repo.owner,
+                    repo: context.repo.repo,
+                    name: name,
+                    color: color,
+                  });
+                } else {
+                  throw error;
+                }
+              }
+            }
+
+            const labels = [];
+
+            if (
+              text.includes("bug") ||
+              text.includes("error") ||
+              text.includes("fail") ||
+              text.includes("broken") ||
+              text.includes("exception")
+            ) {
+              labels.push("bug");
+            }
+
+            if (
+              text.includes("feature") ||
+              text.includes("enhancement") ||
+              text.includes("request") ||
+              text.includes("improve")
+            ) {
+              labels.push("enhancement");
+            }
+
+            if (
+              text.includes("security") ||
+              text.includes("secret") ||
+              text.includes("token") ||
+              text.includes("password") ||
+              text.includes("api key")
+            ) {
+              labels.push("security");
+            }
+
+            if (
+              text.includes("documentation") ||
+              text.includes("docs") ||
+              text.includes("readme")
+            ) {
+              labels.push("documentation");
+            }
+
+            if (labels.length === 0) {
+              labels.push("needs-review");
+            }
+
+            for (const label of labels) {
+              await ensureLabel(label, labelDefinitions[label]);
+            }
+
+            await github.rest.issues.addLabels({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              issue_number: issue.number,
+              labels: labels,
+            });
+
+            await github.rest.issues.createComment({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              issue_number: issue.number,
+              body: `Issue triage bot added label(s): ${labels.join(", ")}.\n\nThis is an automatic triage suggestion. A human maintainer should confirm priority and next action.`
+            });
