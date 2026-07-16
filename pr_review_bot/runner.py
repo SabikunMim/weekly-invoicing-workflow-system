@@ -27,7 +27,7 @@ class PRReviewRunner:
         changed_files: list[str],
         file_contents: dict[str, str] | None = None,
     ) -> list[ReviewFinding]:
-                if file_contents is None:
+        if file_contents is None:
             file_contents = {}
 
         context = self.explorer.explore(changed_files)
