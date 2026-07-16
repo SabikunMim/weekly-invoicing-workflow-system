@@ -1,6 +1,7 @@
 from pr_review_bot.explore_agent import ExploreSubagent
+from pr_review_bot.findings import ReviewFinding
 from pr_review_bot.review_agents.security_agent import SecurityReviewAgent
-from pr_review_bot.review_agents.test_coverage_agent import ReviewFinding, TestCoverageReviewAgent
+from pr_review_bot.review_agents.test_coverage_agent import TestCoverageReviewAgent
 
 
 class PRReviewRunner:
