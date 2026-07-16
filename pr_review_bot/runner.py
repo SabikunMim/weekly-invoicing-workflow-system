@@ -1,3 +1,5 @@
+from concurrent.futures import ThreadPoolExecutor
+
 from pr_review_bot.explore_agent import ExploreSubagent
 from pr_review_bot.findings import ReviewFinding
 from pr_review_bot.review_agents.security_agent import SecurityReviewAgent
@@ -25,20 +27,26 @@ class PRReviewRunner:
         changed_files: list[str],
         file_contents: dict[str, str] | None = None,
     ) -> list[ReviewFinding]:
-        if file_contents is None:
+                if file_contents is None:
             file_contents = {}
 
         context = self.explorer.explore(changed_files)
 
-        findings: list[ReviewFinding] = []
+        with ThreadPoolExecutor(max_workers=2) as executor:
+            test_coverage_future = executor.submit(
+                self.test_coverage_agent.review,
+                context,
+            )
 
-        findings.extend(
-            self.test_coverage_agent.review(context)
-        )
+            security_future = executor.submit(
+                self.security_agent.review,
+                context,
+                file_contents,
+            )
 
-        findings.extend(
-            self.security_agent.review(context, file_contents)
-        )
+            findings: list[ReviewFinding] = []
+            findings.extend(test_coverage_future.result())
+            findings.extend(security_future.result())
 
         return findings
 
