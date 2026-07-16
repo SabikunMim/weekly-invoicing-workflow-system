@@ -106,3 +106,5 @@ Documentation:
 - [Evaluation](docs/evaluation.md)
 
 The bot currently detects missing test coverage for backend code changes and simple risky security patterns in changed file content. It is advisory only and does not replace human review.
+
+Live PR test: this change is used to verify the PR Review Bot workflow.
