@@ -1,16 +1,5 @@
-from dataclasses import dataclass
-
 from pr_review_bot.explore_agent import PullRequestContext
-
-
-@dataclass
-class ReviewFinding:
-    severity: str
-    file: str
-    line: int | None
-    title: str
-    message: str
-    recommendation: str
+from pr_review_bot.findings import ReviewFinding
 
 
 class TestCoverageReviewAgent:
