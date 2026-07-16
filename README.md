@@ -92,3 +92,17 @@ This is a Phase 1 backend prototype. It currently uses in-memory storage to prov
 ## Positioning
 
 This project demonstrates backend API design for operations-heavy service businesses, focusing on invoicing workflow control, exception tracking, and process verification.
+
+## PR Review Bot Documentation
+
+This project includes a prototype PR review bot with subagent-based review logic.
+
+Documentation:
+
+- [Review Logic](docs/review-logic.md)
+- [Subagent Architecture](docs/subagent-architecture.md)
+- [Context Management Strategy](docs/context-management.md)
+- [Guardrails](docs/guardrails.md)
+- [Evaluation](docs/evaluation.md)
+
+The bot currently detects missing test coverage for backend code changes and simple risky security patterns in changed file content. It is advisory only and does not replace human review.
