@@ -30,10 +30,11 @@ def test_runner_returns_no_findings_for_safe_docs_change():
     assert findings == []
 
 
-def test_format_findings_returns_success_message_when_no_findings():
+def test_format_findings_returns_markdown_success_message_when_no_findings():
     output = format_findings([])
 
-    assert output == "PR Review Bot completed. No issues found."
+    assert "<!-- pr-review-bot -->" in output
+    assert "No focused review findings were detected" in output
 
 
 def test_format_findings_includes_finding_details():
@@ -48,5 +49,5 @@ def test_format_findings_includes_finding_details():
 
     output = format_findings(findings)
 
-    assert "PR Review Bot Findings" in output
+    assert "## PR Review Bot" in output
     assert "Missing test coverage" in output
