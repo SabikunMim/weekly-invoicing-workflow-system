@@ -53,3 +53,16 @@ def test_security_agent_ignores_test_fixtures():
     )
 
     assert findings == []
+
+
+def test_security_agent_ignores_its_pattern_declaration():
+    findings = review(
+        ["pr_review_bot/review_agents/security_agent.py"],
+        {
+            "pr_review_bot/review_agents/security_agent.py": (
+                'unsafe_patterns = ("eval(", "exec(", "shell=true")'
+            )
+        },
+    )
+
+    assert findings == []
