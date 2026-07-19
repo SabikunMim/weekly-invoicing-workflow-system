@@ -64,7 +64,7 @@ def format_findings(findings: list[ReviewFinding]) -> str:
     lines.append("")
     for index, finding in enumerate(findings, start=1):
         lines.append(f"{index}. **[{finding.severity.upper()}] {finding.title}**")
-        lines.append(f"   - File: \`{finding.file}\`")
+        lines.append(f"   - File: `{finding.file}`")
         if finding.line is not None:
             lines.append(f"   - Line: {finding.line}")
         lines.append(f"   - {finding.message}")
