@@ -1,211 +1,70 @@
-# Evaluation
+# PR Review Bot Evaluation
 
-## Purpose
+## Implemented capabilities
 
-This document evaluates the current PR review bot implementation.
+The deployed rule-based bot now:
 
-The goal is to show what the bot can detect, what it cannot detect yet, how it was tested, and what should be improved in future versions.
+- Reads the real pull request number from the GitHub event payload.
+- Retrieves every changed-file page from the GitHub API.
+- Passes changed paths through ExploreSubagent.
+- Uses PlanSubagent to select relevant review agents.
+- Passes only added patch lines to content-based checks.
+- Runs independent test-coverage and security checks in parallel.
+- Posts or updates one advisory Markdown comment on the pull request.
+- Avoids duplicate bot comments after synchronized commits.
+- Ignores test fixtures and environment-sourced secret assignments to reduce noise.
+- Supports a separate human-approved safe-auto-fix job.
 
-## Current Bot Capabilities
+## TDD coverage
 
-The current PR review bot can:
+Automated tests cover:
 
-- Identify changed files in a pull request
-- Separate backend code files from test files, workflow files, and documentation files
-- Summarize pull request context using the ExploreSubagent
-- Detect backend code changes without related test changes
-- Detect simple risky security patterns in changed file content
-- Combine findings from multiple review agents
-- Format review findings into a readable report
-- Run automated tests through GitHub Actions CI
+- ExploreSubagent classification and summary behavior.
+- PlanSubagent selection for backend and documentation-only changes.
+- Pull-request event validation and added-line extraction.
+- Missing-test detection.
+- Hard-coded secret and unsafe-execution detection.
+- False-positive controls for test fixtures, environment variables, and the detector's own patterns.
+- Parallel runner coordination and PR comment formatting.
+- The assignment's known-bad-PR scenario.
 
-## What the Bot Currently Detects
+## Live PR evidence
 
-## Missing Test Coverage
+Draft pull request #3 is the live end-to-end test:
 
-The TestCoverageReviewAgent flags a pull request when backend code changes are made without related test changes.
+- [Live pull request #3](https://github.com/SabikunMim/weekly-invoicing-workflow-system/pull/3)
+- [Bot review comment](https://github.com/SabikunMim/weekly-invoicing-workflow-system/pull/3#issuecomment-5014613776)
+- [Passing backend test run](https://github.com/SabikunMim/weekly-invoicing-workflow-system/actions/runs/29675716567)
+- [Passing PR Review Bot run](https://github.com/SabikunMim/weekly-invoicing-workflow-system/actions/runs/29675716554)
 
-Example:
+The first live review exposed false positives for an environment-loaded token and a test fixture. Regression tests and filtering rules were added, after which the bot updated the same PR comment and reported no focused findings.
 
-- Changed file: app/main.py
-- No changed file under tests/
+## Safe auto-fix evidence
 
-Expected finding:
+A maintainer applied the `safe-autofix` label to pull request #3. The isolated auto-fix job:
 
-- Severity: medium
-- Title: Missing test coverage
-- Recommendation: add or update tests for the backend change
+1. Ran Ruff only on changed Python files.
+2. Ran the full pytest suite.
+3. Created a commit only after tests passed.
+4. Pushed the mechanical formatting changes to the PR branch.
 
-## Potential Security Risks
+Evidence:
 
-The SecurityReviewAgent flags simple risky patterns in changed file content.
+- [Human-approved auto-fix commit](https://github.com/SabikunMim/weekly-invoicing-workflow-system/commit/472e6e11406892b7ba10a955a49ee086355cc3c2)
+- [Successful labeled workflow run](https://github.com/SabikunMim/weekly-invoicing-workflow-system/actions/runs/29675839274)
 
-Examples include:
+The approval label was removed after the demonstration to prevent repeated auto-fix attempts.
 
-- api_key =
-- password =
-- secret =
-- token =
-- eval(
-- exec(
-- shell=True
+## Guardrails
 
-Expected finding:
+The ordinary review job has `contents: read` and `pull-requests: write`. The auto-fix job is separate and receives `contents: write` only when its job-level condition is satisfied.
 
-- Severity: high
-- Title: Potential security risk
-- Recommendation: review the risky pattern and avoid hardcoded secrets or unsafe execution
+The auto-fix job cannot run for forked pull requests. It does not approve, merge, change permissions, rewrite business logic, or bypass tests. Maintainers remain responsible for review and merge decisions.
 
-## Documentation-Only Changes
+## Remaining limitations
 
-The bot does not flag documentation-only changes.
+The bot uses deterministic rules rather than semantic code reasoning. It does not prove security, detect complex business-logic bugs, scan dependencies, or guarantee that tests are sufficient. GitHub may omit a patch for binary or very large files; those files remain in the changed-file summary but have no added-line content for the security check.
 
-Example:
+## Result
 
-- Changed file: docs/context-management.md
-
-Expected result:
-
-- No findings
-
-## What the Bot Does Not Detect Yet
-
-The current bot does not yet detect:
-
-- Complex security vulnerabilities
-- Real leaked credentials
-- Business logic errors
-- Incorrect invoice calculations
-- Broken API behavior from actual runtime execution
-- Missing edge case tests
-- Performance problems
-- Dependency vulnerabilities
-- Style issues
-- Full pull request diff analysis
-- Large-file context problems
-- Generated files or vendor files
-
-These limitations are intentional for the current assignment scope.
-
-## Testing Strategy
-
-The project uses automated tests to verify bot behavior.
-
-The tests cover:
-
-- ExploreSubagent file classification
-- TestCoverageReviewAgent behavior
-- SecurityReviewAgent behavior
-- PRReviewRunner coordination
-- format_findings output
-- Assignment-specific bad PR behavior
-
-## Assignment TDD Case
-
-The assignment-specific TDD test simulates a bad pull request.
-
-Scenario:
-
-- Backend code file changes
-- No test file changes
-- A hardcoded API key pattern appears in changed file content
-
-Expected behavior:
-
-- The bot flags missing test coverage
-- The bot flags a potential security risk
-
-This proves the bot can detect a known bad PR pattern.
-
-## Refactoring Evaluation
-
-The bot was refactored by moving the ReviewFinding dataclass into a shared file:
-
-- pr_review_bot/findings.py
-
-Before the refactor, ReviewFinding was tied to the test coverage agent.
-
-After the refactor:
-
-- TestCoverageReviewAgent imports ReviewFinding from the shared model
-- SecurityReviewAgent imports ReviewFinding from the shared model
-- PRReviewRunner imports ReviewFinding from the shared model
-
-This improves maintainability and avoids awkward cross-agent imports.
-
-All tests still pass after the refactor.
-
-## Guardrails Evaluation
-
-The bot follows guardrails documented in:
-
-- docs/guardrails.md
-
-The bot is advisory only.
-
-It does not:
-
-- Auto-merge pull requests
-- Approve pull requests
-- Reject pull requests
-- Modify business logic automatically
-- Claim that code is fully secure
-- Replace human review
-
-This keeps the project safe and realistic.
-
-## CI Evidence
-
-The repository uses GitHub Actions to run the backend test suite.
-
-The Actions page shows successful workflow runs after each major project step, including:
-
-- Adding the PR review runner
-- Adding runner tests
-- Adding assignment TDD behavior test
-- Refactoring ReviewFinding into a shared model
-- Adding guardrails documentation
-
-This provides evidence that the implementation is tested continuously and that refactors did not break existing behavior.
-
-## Current Project Status
-
-Completed assignment work:
-
-- Target repository selected
-- Review logic documented
-- Subagent architecture documented
-- ExploreSubagent implemented
-- TestCoverageReviewAgent implemented
-- SecurityReviewAgent implemented
-- PRReviewRunner implemented
-- Context management documented
-- TDD behavior test added
-- Refactor completed
-- Guardrails documented
-- GitHub Actions CI passing
-
-## Future Improvements
-
-Future versions could add:
-
-- Actual GitHub pull request diff parsing
-- Changed-line level review
-- GitHub API integration
-- PR comment posting
-- Secret redaction before output
-- Generated file skipping
-- File size limits
-- Dependency vulnerability checks
-- More review agents
-- PlanSubagent for selecting relevant agents
-- Better mapping between backend modules and test files
-- More realistic sample pull request evaluations
-
-## Conclusion
-
-The current PR review bot is a focused, tested, and safe prototype.
-
-It can detect missing test coverage and simple security risks in pull request changes. It uses subagents, manages context, follows guardrails, includes TDD coverage, and runs through CI.
-
-The bot is not a replacement for human review, but it provides a strong foundation for a practical AI-assisted pull request review system.
+The assignment's deployed-bot path is demonstrated: actual PR changes flow through Explore, Plan, and focused review agents; results are posted on a live PR; tests run in CI; and a human-approved safe auto-fix produced a verified mechanical commit.
