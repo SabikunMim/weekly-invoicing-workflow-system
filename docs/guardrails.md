@@ -18,6 +18,8 @@ The bot is allowed to:
 - Recommend that a human reviewer checks a risky change
 - Explain why a finding was created
 - Keep feedback limited to the pull request changes
+- Apply mechanical Ruff fixes only after a maintainer adds the `safe-autofix` label
+- Commit an auto-fix only when the complete pytest suite passes
 
 ## What the Bot Is Not Allowed to Do
 
@@ -142,8 +144,9 @@ The current implementation follows these guardrails by:
 - Using ExploreSubagent to limit context
 - Using ReviewFinding for structured output
 - Keeping review agents narrow and testable
-- Returning findings instead of changing code
-- Running tests in GitHub Actions before accepting changes
+- Posting advisory findings without approving or merging
+- Isolating optional auto-fix in a same-repository, label-gated job
+- Running the full test suite before an auto-fix commit can be pushed
 
 ## Future Guardrails
 
@@ -153,7 +156,6 @@ Future versions should add:
 - Ignoring generated files
 - Redacting detected secret values
 - Pull request permission restrictions
-- Human approval before posting or acting on findings
 - Clear labels for advisory feedback
 
 ## Conclusion
