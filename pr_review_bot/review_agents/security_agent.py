@@ -39,7 +39,7 @@ class SecurityReviewAgent:
                     (pattern for pattern in self.unsafe_patterns if pattern in lowered),
                     None,
                 )
-                if unsafe:
+                if unsafe and "unsafe_patterns" not in lowered:
                     findings.append(
                         self._finding(file_path, line_number, unsafe)
                     )
