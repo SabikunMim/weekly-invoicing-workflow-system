@@ -93,16 +93,18 @@ This is a Phase 1 backend prototype. It currently uses in-memory storage to prov
 
 This project demonstrates backend API design for operations-heavy service businesses, focusing on invoicing workflow control, exception tracking, and process verification.
 
-## PR Review Bot Documentation
+## PR Review Bot
 
-This project includes a prototype PR review bot with subagent-based review logic.
+The repository includes a rule-based PR review bot that reads actual pull-request patches, routes compact context through Explore and Plan subagents, runs focused checks in parallel, and posts one advisory PR comment.
+
+A separate safe-auto-fix job is available only after a maintainer adds the `safe-autofix` label. It is limited to same-repository pull requests, mechanical Ruff fixes, and changes that still pass the full pytest suite.
 
 Documentation:
 
 - [Review Logic](docs/review-logic.md)
 - [Subagent Architecture](docs/subagent-architecture.md)
 - [Context Management Strategy](docs/context-management.md)
+- [Parallel Execution](docs/parallel-execution.md)
+- [Live PR Bot and Safe Auto-Fix](docs/live-pr-bot.md)
 - [Guardrails](docs/guardrails.md)
 - [Evaluation](docs/evaluation.md)
-
-The bot currently detects missing test coverage for backend code changes and simple risky security patterns in changed file content. It is advisory only and does not replace human review.
