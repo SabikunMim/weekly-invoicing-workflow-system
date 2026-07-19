@@ -1,5 +1,3 @@
-import json
-
 import pytest
 
 from pr_review_bot.github_pr import added_patch_lines, pull_request_number

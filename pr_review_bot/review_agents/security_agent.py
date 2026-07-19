@@ -40,9 +40,7 @@ class SecurityReviewAgent:
                     None,
                 )
                 if unsafe and "unsafe_patterns" not in lowered:
-                    findings.append(
-                        self._finding(file_path, line_number, unsafe)
-                    )
+                    findings.append(self._finding(file_path, line_number, unsafe))
                     break
 
                 assignment = self.sensitive_assignment.search(line)

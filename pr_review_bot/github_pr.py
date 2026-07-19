@@ -23,14 +23,18 @@ def github_api_json(url: str, token: str) -> object:
             return json.load(response)
     except HTTPError as error:
         detail = error.read().decode("utf-8", errors="replace")
-        raise RuntimeError(f"GitHub API request failed ({error.code}): {detail}") from error
+        raise RuntimeError(
+            f"GitHub API request failed ({error.code}): {detail}"
+        ) from error
 
 
 def pull_request_number(event: dict) -> int:
     try:
         return int(event["pull_request"]["number"])
     except (KeyError, TypeError, ValueError) as error:
-        raise ValueError("The event payload does not contain a pull request number.") from error
+        raise ValueError(
+            "The event payload does not contain a pull request number."
+        ) from error
 
 
 def added_patch_lines(patch: str | None) -> str:
@@ -60,20 +64,23 @@ def fetch_changed_files(repository: str, number: int, token: str) -> list[dict]:
         page += 1
 
 
-def review_pull_request(event: dict, repository: str, token: str) -> tuple[str, list[str]]:
+def review_pull_request(
+    event: dict, repository: str, token: str
+) -> tuple[str, list[str]]:
     number = pull_request_number(event)
     changed = fetch_changed_files(repository, number, token)
     changed_files = [item["filename"] for item in changed]
     changed_lines = {
-        item["filename"]: added_patch_lines(item.get("patch"))
-        for item in changed
+        item["filename"]: added_patch_lines(item.get("patch")) for item in changed
     }
     findings = PRReviewRunner().review(changed_files, changed_lines)
     return format_findings(findings), changed_files
 
 
 def main() -> None:
-    parser = argparse.ArgumentParser(description="Review the pull request from a GitHub event.")
+    parser = argparse.ArgumentParser(
+        description="Review the pull request from a GitHub event."
+    )
     parser.add_argument("--event-path", required=True)
     parser.add_argument("--output", default="pr-review.md")
     parser.add_argument("--changed-files-output", default="changed-files.txt")

@@ -26,9 +26,13 @@ class PlanSubagent:
         if run_test_coverage:
             reasons.append("Backend code changed, so test coverage should be reviewed.")
         if run_security:
-            reasons.append("Reviewable code or configuration changed, so security patterns should be scanned.")
+            reasons.append(
+                "Reviewable code or configuration changed, so security patterns should be scanned."
+            )
         if not reasons:
-            reasons.append("Only non-reviewable files changed; focused code checks can be skipped.")
+            reasons.append(
+                "Only non-reviewable files changed; focused code checks can be skipped."
+            )
 
         return ReviewPlan(
             run_test_coverage=run_test_coverage,
