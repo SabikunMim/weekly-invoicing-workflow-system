@@ -27,7 +27,8 @@ The current bot uses this flow:
 Pull request changed files  
 → ExploreSubagent  
 → PullRequestContext summary  
-→ Review agents  
+→ PlanSubagent  
+→ Selected review agents  
 → Structured findings  
 → Final review output
 
@@ -61,7 +62,7 @@ For example:
 
 The TestCoverageReviewAgent only needs to know whether backend code files changed and whether test files changed.
 
-The SecurityReviewAgent needs changed file paths and the content of those changed files.
+The SecurityReviewAgent receives changed file paths and only the added lines available in GitHub's per-file patch.
 
 This avoids unnecessary processing and keeps each agent narrow.
 
@@ -110,7 +111,9 @@ This reduces noise and keeps the review tied to the pull request.
 Current implementation files:
 
 - pr_review_bot/explore_agent.py
+- pr_review_bot/plan_agent.py
 - pr_review_bot/runner.py
+- pr_review_bot/github_pr.py
 - pr_review_bot/review_agents/test_coverage_agent.py
 - pr_review_bot/review_agents/security_agent.py
 
@@ -164,9 +167,10 @@ It:
 
 1. Sends changed_files to the ExploreSubagent.
 2. Receives a compact PullRequestContext.
-3. Sends the PullRequestContext to review agents.
-4. Sends file contents only to agents that need file contents.
-5. Combines findings into one final output.
+3. Sends that context to PlanSubagent to select relevant checks.
+4. Runs only the selected review agents in parallel.
+5. Sends added patch lines only to agents that need content.
+6. Combines findings into one stable PR comment.
 
 This keeps the runner simple and avoids large, unfocused review logic.
 
@@ -174,13 +178,9 @@ This keeps the runner simple and avoids large, unfocused review logic.
 
 Future versions can improve context management by:
 
-- Reading actual git diffs instead of full file content
-- Passing only changed lines to review agents
 - Limiting file content size per file
 - Skipping generated or vendor files
 - Creating per-file summaries for large pull requests
-- Running review agents in parallel
-- Adding a PlanSubagent to select only relevant agents for each PR
 
 ## Conclusion
 
